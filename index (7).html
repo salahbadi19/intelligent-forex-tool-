@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تحليل فوركس ذكي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* تصميم فخم ومتجاوب */
+    body {
+      margin: 0;
+      font-family: 'Changa', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #f0f0f0;
+    }
+    .container {
+      width: 90%;
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+      font-size: 1rem;
+      text-align: center;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #ff416c, #ff4b2b);
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      transition: transform 0.2s;
+      margin-top: 10px;
+    }
+    button:hover {
+      transform: scale(1.02);
+    }
+    .result-card {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      text-align: left;
+    }
+    .result-card h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 1.5rem;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    }
+    .result-card p {
+      margin: 8px 0;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+    .login-note {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+    .login-note a {
+      color: #ffb74d;
+      text-decoration: none;
+    }
+    .warning {
+      color: #ffcc00;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    @media (max-width: 480px) {
+      .container {
+        margin: 30px auto;
+        padding: 15px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      input {
+        font-size: 0.9rem;
+        padding: 8px;
+      }
+      button {
+        font-size: 1rem;
+        padding: 10px;
+      }
+      .result-card p {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- صفحة تسجيل الدخول -->
+  <div id="login-container" class="container">
+    <h1>تسجيل الدخول</h1>
+    <input type="password" id="password" placeholder="أدخل كلمة المرور" />
+    <button id="login-btn">دخول</button>
+    <p class="login-note">إذا أنت لم تشترك هذا حسابي تلجرام للاشتراك في البوت <a href="https://t.me/Trader2365" target="_blank">@Trader2365</a></p>
+  </div>
+
+  <!-- صفحة تحليل الفوركس -->
+  <div id="main-container" class="container" style="display:none;">
+    <h1>تحليل فوركس ذكي</h1>
+    <form id="signalForm">
+      <input type="text" id="resPrice" placeholder="سعر المقاومة (مثال: 1.2345)" required />
+      <input type="text" id="resTime" placeholder="وقت المقاومة (HH:MM)" required />
+      <input type="text" id="supPrice" placeholder="سعر الدعم (مثال: 1.2200)" required />
+      <input type="text" id="supTime" placeholder="وقت الدعم (HH:MM)" required />
+      <input type="text" id="entryPrice" placeholder="سعر الدخول (مثال: 1.2280)" required />
+      <input type="text" id="entryTime" placeholder="وقت الدخول (HH:MM)" required />
+      <button type="submit">احسب الإشارة</button>
+      <p id="validation-warning" class="warning" style="display:none;"></p>
+    </form>
+    <div id="result" class="result-card">
+      <h2>نتيجة التحليل</h2>
+      <p id="signalType"></p>
+      <p id="entryTimeDisplay"></p>
+      <p id="targets"></p>
+      <p id="stopLoss"></p>
+      <p id="riskReward"></p>
+      <p id="recommendation"></p>
+    </div>
+  </div>
+
+  <script>
+    // تسجيل الدخول
+    document.getElementById('login-btn').addEventListener('click', function() {
+      const pw = document.getElementById('password').value;
+      if (pw === '985275') {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('main-container').style.display = 'block';
+      } else {
+        alert('كلمة المرور خاطئة');
+      }
+    });
+
+    // حساب الإشارة بذكاء
+    document.getElementById('signalForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const resPrice = parseFloat(document.getElementById('resPrice').value);
+      const supPrice = parseFloat(document.getElementById('supPrice').value);
+      const entryPrice = parseFloat(document.getElementById('entryPrice').value);
+      const resTime = document.getElementById('resTime').value;
+      const supTime = document.getElementById('supTime').value;
+      const entryTime = document.getElementById('entryTime').value;
+      const warningEl = document.getElementById('validation-warning');
+      warningEl.style.display = 'none';
+
+      if (supPrice >= resPrice) {
+        warningEl.textContent = '⚠️ يجب أن يكون الدعم أقل من المقاومة.';
+        warningEl.style.display = 'block';
+        return;
+      }
+
+      let signalType = '';
+      if (entryPrice > resPrice) signalType = 'شراء (اختراق مقاومة)';
+      else if (entryPrice < supPrice) signalType = 'بيع (اختراق دعم)';
+      else {
+        warningEl.textContent = '⚠️ السعر داخل النطاق. يفضل الانتظار حتى الاختراق.';
+        warningEl.style.display = 'block';
+        return;
+      }
+
+      const priceRange = Math.abs(resPrice - supPrice);
+      let stopLoss;
+      let targets = [];
+      if (signalType.startsWith('شراء')) {
+        stopLoss = supPrice;
+        targets = [
+          entryPrice + priceRange * 0.382,
+          entryPrice + priceRange * 0.618,
+          entryPrice + priceRange * 1.0
+        ];
+      } else {
+        stopLoss = resPrice;
+        targets = [
+          entryPrice - priceRange * 0.382,
+          entryPrice - priceRange * 0.618,
+          entryPrice - priceRange * 1.0
+        ];
+      }
+
+      const rr = targets.map(t => {
+        const reward = Math.abs(t - entryPrice);
+        const risk = Math.abs(entryPrice - stopLoss);
+        return (reward / risk).toFixed(2);
+      });
+
+      const maxRR = Math.max(...rr);
+      let recommendation = '';
+      if (maxRR >= 2) recommendation = 'توصية: إشارة قوية ✅';
+      else if (maxRR >= 1) recommendation = 'توصية: إشارة متوسطة ⚠️';
+      else recommendation = 'توصية: إشارة ضعيفة ❌';
+
+      document.getElementById('signalType').textContent = `📊 نوع الإشارة: ${signalType}`;
+      document.getElementById('entryTimeDisplay').textContent = `🕒 وقت الدخول: ${entryTime}`;
+      document.getElementById('targets').innerHTML = `🎯 أهداف الربح:<br>1) ${targets[0].toFixed(5)} (R:R=${rr[0]})<br>2) ${targets[1].toFixed(5)} (R:R=${rr[1]})<br>3) ${targets[2].toFixed(5)} (R:R=${rr[2]})`;
+      document.getElementById('stopLoss').textContent = `❌ وقف الخسارة: ${stopLoss.toFixed(5)}`;
+      document.getElementById('riskReward').textContent = `⚖️ أعلى R:R = ${maxRR}`;
+      document.getElementById('recommendation').textContent = recommendation;
+      document.getElementById('result').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
